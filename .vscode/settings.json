@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Users\\RJBar\\Downloads\\reactive-streams-1.0.3.jar",
+        "c:\\Users\\RJBar\\Downloads\\neo4j-java-driver-4.2.5.jar"
+    ]
+}
