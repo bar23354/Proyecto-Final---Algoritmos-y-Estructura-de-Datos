@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommender System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>UVG Match!</h1>
+    
+    <div>
+        <h2>Agregar usuario</h2>
+        <form id="addUserForm">
+            <input type="text" id="userId" placeholder="User ID" required>
+            <input type="text" id="userName" placeholder="Name" required>
+            <input type="number" id="userAge" placeholder="Age" required>
+            <input type="text" id="userPreferences" placeholder="Preferences" required>
+            <button type="submit">Agregar usuario</button>
+        </form>
+    </div>
+    
+    <div>
+        <h2>Eliminar usuario</h2>
+        <form id="deleteUserForm">
+            <input type="text" id="deleteUserId" placeholder="User ID" required>
+            <button type="submit">Eliminar usuario</button>
+        </form>
+    </div>
+    
+    <div>
+        <h2>Obtener recomendaciones</h2>
+        <form id="getRecommendationsForm">
+            <input type="text" id="recommendUserId" placeholder="User ID" required>
+            <button type="submit">Obtener recomendaciones</button>
+        </form>
+        <div id="recommendations"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
