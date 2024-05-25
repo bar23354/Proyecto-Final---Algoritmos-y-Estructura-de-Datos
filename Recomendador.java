@@ -1,5 +1,10 @@
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Result;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Values;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +23,8 @@ public class Recomendador {
                 "MATCH (u:Usuario)-[:INTERESADO_EN]->(g:Gusto)<-[:INTERESADO_EN]-(re:Usuario) " +
                 "WHERE u.id = $id " +
                 "RETURN re.id AS id, re.nombre AS nombre", 
-                parameters("id", usuarioId));
+                Values.parameters("id", usuarioId));
+            
             while (result.hasNext()) {
                 Record record = result.next();
                 Perfil perfil = new Perfil();
@@ -36,7 +42,8 @@ public class Recomendador {
             Result result = session.run(
                 "MATCH (p:Perfil {id: $id})-[:INTERESADO_EN]->(g:Gusto) " +
                 "RETURN g.nombre AS gusto",
-                parameters("id", perfilId));
+                Values.parameters("id", perfilId));
+            
             while (result.hasNext()) {
                 intereses.add(result.next().get("gusto").asString());
             }
