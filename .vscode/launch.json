@@ -1,0 +1,12 @@
+{
+  "version": "22.0.1",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Launch Main",
+      "request": "launch",
+      "mainClass": "com.example.demo.DemoApplication",
+      "vmArgs": "--module-path C:\\Users\\RJBar\\Downloads\\javafx-sdk-22.0.1\\lib --add-modules javafx.controls,javafx.fxml"
+    }
+  ]
+}

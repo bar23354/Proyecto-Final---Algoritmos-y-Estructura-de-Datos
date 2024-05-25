@@ -3,5 +3,7 @@
         "lib/**/*.jar",
         "c:\\Users\\RJBar\\Downloads\\reactive-streams-1.0.3.jar",
         "c:\\Users\\RJBar\\Downloads\\neo4j-java-driver-4.2.5.jar"
+        "C:\\Program Files\\apache-maven-3.9.7\\lib\\*.jar"
+        "C:\\Users\\RJBar\\Downloads\\javafx-sdk-22.0.1\\lib\\*.jar"
     ]
 }
