@@ -2,21 +2,11 @@ package src;
 
 import java.util.LinkedList;
 import java.util.Scanner;
-import java.util.Collections;
-
-import java.util.LinkedList;
-import java.util.Scanner;
-import java.util.Collections;
-
-import java.util.LinkedList;
-import java.util.Scanner;
-import java.util.Collections;
 
 public class Applicacion {
-    Scanner scanner = new Scanner(System.in);
+    private static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
         String uri = "bolt://localhost:7687";
         String user = "neo4j";
         String password = "password";
@@ -27,7 +17,8 @@ public class Applicacion {
         System.out.println("1. Iniciar sesión");
         System.out.println("2. Registrarse");
         int option = scanner.nextInt();
-        scanner.nextLine(); // Consume
+        scanner.nextLine(); // Consume newline
+
         if (option == 1) {
             name = login(uri, user, password, databaseName);
             while (name == null) {
@@ -35,14 +26,12 @@ public class Applicacion {
                 System.out.println("¿Desea registrarse? (s/n)");
                 String register = scanner.nextLine();
                 if (register.equals("s")) {
-                    Applicacion app = new Applicacion();
-                    app.signin(uri, user, password, databaseName);
+                    signin(uri, user, password, databaseName);
                     name = login(uri, user, password, databaseName);
                 }
             }
         } else {
-            Applicacion app = new Applicacion();
-            app.signin(uri, user, password, databaseName);
+            signin(uri, user, password, databaseName);
             name = login(uri, user, password, databaseName);
         }
 
@@ -72,8 +61,7 @@ public class Applicacion {
                     System.out.println(connection);
                 }
             } else if (opcion == 4) {
-                LinkedList<String> disconnections = app.disconnectUsersBasedOnDislikes(uri, user, password,
-                        databaseName);
+                LinkedList<String> disconnections = app.disconnectUsersBasedOnDislikes(uri, user, password, databaseName);
                 System.out.println("Desconexiones basadas en disgustos: ");
                 for (String disconnection : disconnections) {
                     System.out.println(disconnection);
@@ -82,23 +70,20 @@ public class Applicacion {
         }
     }
 
-    public String signin(String uri, String user, String password, String databaseName) {
+    public static void signin(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             System.out.println("Ingrese su nombre de usuario: ");
-            String name = System.console().readLine();
+            String name = scanner.nextLine();
             System.out.println("Ingrese su contraseña: ");
-            String pass = System.console().readLine();
+            String pass = scanner.nextLine();
             String result = db.createUser(name, pass, databaseName);
-            return result;
-
+            System.out.println(result);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
 
-    public void addLike(String uri, String user, String password, String databaseName, String userName,
-            String interest) {
+    public void addLike(String uri, String user, String password, String databaseName, String userName, String interest) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             String result = db.addLike(userName, interest, databaseName);
             System.out.println(result);
@@ -107,8 +92,7 @@ public class Applicacion {
         }
     }
 
-    public void addDislike(String uri, String user, String password, String databaseName, String userName,
-            String interest) {
+    public void addDislike(String uri, String user, String password, String databaseName, String userName, String interest) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             String result = db.addDislike(userName, interest, databaseName);
             System.out.println(result);
@@ -126,8 +110,7 @@ public class Applicacion {
         }
     }
 
-    public LinkedList<String> disconnectUsersBasedOnDislikes(String uri, String user, String password,
-            String databaseName) {
+    public LinkedList<String> disconnectUsersBasedOnDislikes(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             return db.disconnectUsersBasedOnDislikes(databaseName);
         } catch (Exception e) {
@@ -139,9 +122,9 @@ public class Applicacion {
     public static String login(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             System.out.println("Ingrese su nombre de usuario: ");
-            String name = System.console().readLine();
+            String name = scanner.nextLine();
             System.out.println("Ingrese su contraseña: ");
-            String pass = System.console().readLine();
+            String pass = scanner.nextLine();
             String pword = db.getUserPassword(name, databaseName);
             if (pword != null && pword.equals(pass)) {
                 return name;

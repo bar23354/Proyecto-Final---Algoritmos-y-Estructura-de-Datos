@@ -3,6 +3,20 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Applicacion",
+      "request": "launch",
+      "mainClass": "src.Applicacion",
+      "projectName": "Proyecto-Final---Algoritmos-y-Estructura-de-Datos_99dab973"
+    },
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
+      "mainClass": "Main",
+      "projectName": "Proyecto-Final---Algoritmos-y-Estructura-de-Datos_99dab973"
+    },
+    {
+      "type": "java",
       "name": "Launch Main",
       "request": "launch",
       "mainClass": "com.example.demo.DemoApplication",
