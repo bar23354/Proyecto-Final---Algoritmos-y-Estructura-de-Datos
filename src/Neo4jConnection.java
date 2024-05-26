@@ -4,6 +4,7 @@ import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import static org.neo4j.driver.Values.parameters;
 
@@ -108,6 +109,45 @@ public class Neo4jConnection implements AutoCloseable {
                 return disconnections;
             });
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public LinkedList<String> getCompatibleUsers(String userName, String databaseName, boolean sortByLikes) {
+        try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
+            return session.readTransaction(tx -> {
+                Result result = tx.run("MATCH (u1:User {name: $userName})-[:LIKES]->(i:Interest)<-[:LIKES]-(u2:User) " +
+                                "WHERE u1 <> u2 " +
+                                "RETURN u2.name, COUNT(i) AS commonInterests " +
+                                "ORDER BY commonInterests " + (sortByLikes ? "DESC" : "ASC"),
+                        parameters("userName", userName));
+                LinkedList<String> compatibleUsers = new LinkedList<>();
+                while (result.hasNext()) {
+                    Record record = result.next();
+                    compatibleUsers.add(record.get(0).asString() + " - " + record.get(1).asString());
+                }
+                return compatibleUsers;
+            });
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    public List<String> getAvailableCategories(String userName, String databaseName) {
+        try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
+            return session.readTransaction(tx -> {
+                Result result = tx.run("MATCH (u:User {name: $userName})-[:LIKES]->(i:Interest)-[:OF_CATEGORY]->(c:Category) " +
+                                "RETURN DISTINCT c.name",
+                        parameters("userName", userName));
+                List<String> categories = new LinkedList<>();
+                while (result.hasNext()) {
+                    Record record = result.next();
+                    categories.add(record.get("c.name").asString());
+                }
+                return categories;
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
