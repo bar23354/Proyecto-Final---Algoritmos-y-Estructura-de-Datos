@@ -1,3 +1,4 @@
+p
 "(:User {password: ""password1"",name: ""Maria""})-[:LIKES]->(:Interest {name: ""fútbol""})"
 "(:User {password: ""password1"",name: ""Maria""})-[:LIKES]->(:Interest {name: ""respeto""})"
 "(:User {password: ""password1"",name: ""Maria""})-[:LIKES]->(:Interest {name: ""historia""})"

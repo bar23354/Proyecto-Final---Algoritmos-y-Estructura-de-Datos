@@ -18,10 +18,11 @@ public class Aplicacion {
         String password = "password";
         String databaseName = "neo4j2";
         String name;
+        String result;
 
         // Carga de usuarios desde CSV
         try {
-            List<User> users = loadUsersFromCSV("usuarios.csv");
+            List<User> users = loadUsersFromCSV("usuarios.csv", uri, user, password, databaseName);
             try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
                 for (User currentUser : users) {
                     System.out.println("Usuario: " + currentUser.getUsername());
@@ -53,6 +54,7 @@ public class Aplicacion {
         scanner.nextLine(); // Consume newline
 
         Aplicacion app = new Aplicacion();
+        Neo4jConnection neo4jConnection = new Neo4jConnection(uri, user, password);
 
         if (option == 1) {
             name = app.login(uri, user, password, databaseName);
@@ -108,6 +110,12 @@ public class Aplicacion {
                         break;
                     case 5:
                         continuar = false;
+                        break;
+                    case 6:
+                        System.out.print("Ingrese el nombre de usuario a eliminar: ");
+                        String deleteUser = scanner.nextLine();
+                        result = neo4jConnection.deleteUser(deleteUser, databaseName);
+                        System.out.println(result);
                         break;
                     default:
                         System.out.println("Opción inválida.");
@@ -199,28 +207,53 @@ public class Aplicacion {
         return null;
     }
 
-    private static List<User> loadUsersFromCSV(String filename) throws IOException {
-        List<User> users = new LinkedList<>();
+    private static void loadUsersFromCSV(String filename, String uri, String user, String password, String databaseName) throws IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
+            Neo4jConnection db = new Neo4jConnection(uri, user, password);
             while ((line = br.readLine()) != null) {
                 String[] data = line.split(",");
-                User user = new User(data[0]);
-                user.setSignIn(data[1]);
+                String username = data[0].trim();
+                // Verificar si el usuario ya existe
+                if (!userExists(username, db, databaseName)) {
+                    // Si el usuario no existe, crearlo
+                    createUser(username, db, databaseName);
+                }
+                // Añadir likes y dislikes
                 for (int i = 2; i < data.length; i++) {
                     String interestName = data[i].trim();
                     String sanitizedInterestName = normalizeString(interestName);
                     if (i < 6) {
-                        user.addLike(getCategoryByIndex(i), sanitizedInterestName);
+                        addLike(username, getCategoryByIndex(i), sanitizedInterestName, db, databaseName);
                     } else {
-                        user.addDislike(getCategoryByIndex(i), sanitizedInterestName);
+                        addDislike(username, getCategoryByIndex(i), sanitizedInterestName, db, databaseName);
                     }
                 }
-                users.add(user);
             }
         }
-        return users;
     }
+    
+    private static boolean userExists(String username, Neo4jConnection db, String databaseName) {
+        // Consultar la base de datos Neo4j para verificar si el usuario ya existe
+        String password = db.getUserPassword(username, databaseName);
+        return password != null;
+    }
+    
+    private static void createUser(String username, Neo4jConnection db, String databaseName) {
+        // Crear un nuevo usuario en la base de datos Neo4j
+        db.createUser(username, "password", databaseName); // Se puede establecer una contraseña predeterminada
+    }
+    
+    private static void addLike(String username, String category, String interest, Neo4jConnection db, String databaseName) {
+        // Añadir un like a un usuario en la base de datos Neo4j
+        db.addLike(username, category, interest, databaseName);
+    }
+    
+    private static void addDislike(String username, String category, String interest, Neo4jConnection db, String databaseName) {
+        // Añadir un dislike a un usuario en la base de datos Neo4j
+        db.addDislike(username, category, interest, databaseName);
+    }
+    
 
     private static String getCategoryByIndex(int index) {
         switch (index) {
