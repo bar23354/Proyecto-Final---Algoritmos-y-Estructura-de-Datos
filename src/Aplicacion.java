@@ -3,12 +3,14 @@ package src;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Aplicacion {
     private static Scanner scanner = new Scanner(System.in);
+    private static final String[] CATEGORIES = {"Deportes", "Cultura", "Religión", "Valores"};
 
     public static void main(String[] args) {
         String uri = "bolt://localhost:7687";
@@ -20,17 +22,25 @@ public class Aplicacion {
         // Carga de usuarios desde CSV
         try {
             List<User> users = loadUsersFromCSV("usuarios.csv");
-            for (User currentUser : users) {
-                System.out.println("Usuario: " + currentUser.getUsername());
-                System.out.println("Likes:");
-                currentUser.getLikes().forEach((category, interests) -> {
-                    System.out.println(category + ": " + interests);
-                });
-                System.out.println("Dislikes:");
-                currentUser.getDislikes().forEach((category, dislikes) -> {
-                    System.out.println(category + ": " + dislikes);
-                });
-                System.out.println();
+            try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
+                for (User currentUser : users) {
+                    System.out.println("Usuario: " + currentUser.getUsername());
+                    System.out.println("Likes:");
+                    currentUser.getLikes().forEach((category, interests) -> {
+                        System.out.println(category + ": " + interests);
+                        interests.forEach(interest -> {
+                            db.addLike(currentUser.getUsername(), category, interest, databaseName);
+                        });
+                    });
+                    System.out.println("Dislikes:");
+                    currentUser.getDislikes().forEach((category, dislikes) -> {
+                        System.out.println(category + ": " + dislikes);
+                        dislikes.forEach(dislike -> {
+                            db.addDislike(currentUser.getUsername(), category, dislike, databaseName);
+                        });
+                    });
+                    System.out.println();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -42,25 +52,26 @@ public class Aplicacion {
         int option = scanner.nextInt();
         scanner.nextLine(); // Consume newline
 
+        Aplicacion app = new Aplicacion();
+
         if (option == 1) {
-            name = login(uri, user, password, databaseName);
+            name = app.login(uri, user, password, databaseName);
             while (name == null) {
                 System.out.println("Usuario o contraseña incorrectos");
                 System.out.println("¿Desea registrarse? (s/n)");
                 String register = scanner.nextLine();
                 if (register.equals("s")) {
-                    signin(uri, user, password, databaseName);
-                    name = login(uri, user, password, databaseName);
+                    app.signin(uri, user, password, databaseName);
+                    name = app.login(uri, user, password, databaseName);
                 }
             }
         } else {
-            signin(uri, user, password, databaseName);
-            name = login(uri, user, password, databaseName);
+            app.signin(uri, user, password, databaseName);
+            name = app.login(uri, user, password, databaseName);
         }
 
         if (name != null) {
             System.out.println("Bienvenido " + name);
-            Aplicacion app = new Aplicacion();
 
             boolean continuar = true;
             while (continuar) {
@@ -74,33 +85,27 @@ public class Aplicacion {
                 scanner.nextLine(); // Consume newline
                 switch (opcion) {
                     case 1:
-                        System.out.println("Ingrese la categoría del interés: ");
-                        String likeCategory = scanner.nextLine();
-                        System.out.println("Ingrese el nombre del interés: ");
-                        String like = scanner.nextLine();
-                        app.addLike(uri, user, password, databaseName, name, likeCategory, like);
+                        String[] likeData = getInterestData();
+                        app.addLike(uri, user, password, databaseName, name, likeData[0], likeData[1]);
                         break;
                     case 2:
-                        System.out.println("Ingrese la categoría del interés: ");
-                        String dislikeCategory = scanner.nextLine();
-                        System.out.println("Ingrese el nombre del interés: ");
-                        String dislike = scanner.nextLine();
-                        app.addDislike(uri, user, password, databaseName, name, dislikeCategory, dislike);
+                        String[] dislikeData = getInterestData();
+                        app.addDislike(uri, user, password, databaseName, name, dislikeData[0], dislikeData[1]);
                         break;
                     case 3:
-                    LinkedList<String> connections = app.connectUsersBasedOnLikes(uri, user, password, databaseName);
-                    System.out.println("Conexiones basadas en gustos: ");
-                    for (String connection : connections) {
-                        System.out.println(connection);
+                        LinkedList<String> connections = app.connectUsersBasedOnLikes(uri, user, password, databaseName);
+                        System.out.println("Conexiones basadas en gustos: ");
+                        for (String connection : connections) {
+                            System.out.println(connection);
+                        }
                         break;
-                    }
                     case 4:
-                    LinkedList<String> disconnections = app.disconnectUsersBasedOnDislikes(uri, user, password, databaseName);
-                    System.out.println("Desconexiones basadas en disgustos: ");
-                    for (String disconnection : disconnections) {
-                        System.out.println(disconnection);
+                        LinkedList<String> disconnections = app.disconnectUsersBasedOnDislikes(uri, user, password, databaseName);
+                        System.out.println("Desconexiones basadas en disgustos: ");
+                        for (String disconnection : disconnections) {
+                            System.out.println(disconnection);
+                        }
                         break;
-                    }
                     case 5:
                         continuar = false;
                         break;
@@ -112,7 +117,22 @@ public class Aplicacion {
         }
     }
 
-    public static void signin(String uri, String user, String password, String databaseName) {
+    private static String[] getInterestData() {
+        System.out.println("Seleccione una categoría:");
+        for (int i = 0; i < CATEGORIES.length; i++) {
+            System.out.println((i + 1) + ". " + CATEGORIES[i]);
+        }
+        int categoryIndex = scanner.nextInt() - 1;
+        scanner.nextLine(); // Consume newline
+        String category = CATEGORIES[categoryIndex];
+
+        System.out.println("Ingrese el nombre del interés: ");
+        String interest = scanner.nextLine();
+
+        return new String[]{category, normalizeString(interest)};
+    }
+
+    public void signin(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             System.out.println("Ingrese su nombre de usuario: ");
             String name = scanner.nextLine();
@@ -125,18 +145,18 @@ public class Aplicacion {
         }
     }
 
-    public void addLike(String uri, String user, String password, String databaseName, String userName, String interest, String like) {
+    public void addLike(String uri, String user, String password, String databaseName, String userName, String category, String like) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
-            String result = db.addLike(userName, interest, databaseName);
+            String result = db.addLike(userName, category, like, databaseName);
             System.out.println(result);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void addDislike(String uri, String user, String password, String databaseName, String userName, String interest, String dislike) {
+    public void addDislike(String uri, String user, String password, String databaseName, String userName, String category, String dislike) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
-            String result = db.addDislike(userName, interest, databaseName);
+            String result = db.addDislike(userName, category, dislike, databaseName);
             System.out.println(result);
         } catch (Exception e) {
             e.printStackTrace();
@@ -161,7 +181,7 @@ public class Aplicacion {
         }
     }
 
-    public static String login(String uri, String user, String password, String databaseName) {
+    public String login(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             System.out.println("Ingrese su nombre de usuario: ");
             String name = scanner.nextLine();
@@ -189,11 +209,11 @@ public class Aplicacion {
                 user.setSignIn(data[1]);
                 for (int i = 2; i < data.length; i++) {
                     String interestName = data[i].trim();
-                    String sanitizedInterestName = sanitizeInterestName(interestName);
+                    String sanitizedInterestName = normalizeString(interestName);
                     if (i < 6) {
-                        user.addLike(getCategoryByIndex(i), sanitizedInterestName, interestName, sanitizedInterestName, sanitizedInterestName, sanitizedInterestName, sanitizedInterestName);
+                        user.addLike(getCategoryByIndex(i), sanitizedInterestName);
                     } else {
-                        user.addDislike(getCategoryByIndex(i), sanitizedInterestName, interestName, sanitizedInterestName, sanitizedInterestName, sanitizedInterestName, sanitizedInterestName);
+                        user.addDislike(getCategoryByIndex(i), sanitizedInterestName);
                     }
                 }
                 users.add(user);
@@ -203,20 +223,29 @@ public class Aplicacion {
     }
 
     private static String getCategoryByIndex(int index) {
-        if (index == 2 || index == 6) {
-            return "Deportes";
-        } else if (index == 3 || index == 7) {
-            return "Cultura";
-        } else if (index == 4 || index == 8) {
-            return "Religión";
-        } else if (index == 5 || index == 9) {
-            return "Valores";
+        switch (index) {
+            case 2:
+            case 6:
+                return "Deportes";
+            case 3:
+            case 7:
+                return "Cultura";
+            case 4:
+            case 8:
+                return "Religión";
+            case 5:
+            case 9:
+                return "Valores";
+            default:
+                return "Desconocido";
         }
-        return "";
     }
 
-    private static String sanitizeInterestName(String interestName) {
-        // Aquí podrías implementar cualquier lógica de sanitización necesaria
-        return interestName;
+    private static String normalizeString(String input) {
+        input = input.toLowerCase();
+        input = Normalizer.normalize(input, Normalizer.Form.NFD);
+        input = input.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        input = input.replaceAll("\\s+", "");
+        return input;
     }
 }
