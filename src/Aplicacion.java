@@ -12,79 +12,79 @@ public class Aplicacion {
     private static Scanner scanner = new Scanner(System.in);
     private static final String[] CATEGORIES = {"Deportes", "Cultura", "Religión", "Valores"};
 
-    public static void main(String[] args) {
-        String uri = "bolt://localhost:7687";
-        String user = "neo4j";
-        String password = "password";
-        String databaseName = "neo4j2";
-        String name;
-        String result;
+public static void main(String[] args) {
+    String uri = "bolt://localhost:7687";
+    String user = "neo4j";
+    String password = "password";
+    String databaseName = "neo4j2";
+    String name;
 
-        // Carga de usuarios desde CSV
-        try {
-            List<User> users = loadUsersFromCSV("usuarios.csv", uri, user, password, databaseName);
-            try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
-                for (User currentUser : users) {
-                    System.out.println("Usuario: " + currentUser.getUsername());
-                    System.out.println("Likes:");
-                    currentUser.getLikes().forEach((category, interests) -> {
-                        System.out.println(category + ": " + interests);
-                        interests.forEach(interest -> {
-                            db.addLike(currentUser.getUsername(), category, interest, databaseName);
-                        });
+    // Carga de usuarios desde CSV
+    try {
+        List<User> users = loadUsersFromCSV("usuarios.csv", uri, user, password, databaseName);
+        try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
+            for (User currentUser : users) {
+                System.out.println("Usuario: " + currentUser.getUsername());
+                System.out.println("Likes:");
+                currentUser.getLikes().forEach((category, interests) -> {
+                    System.out.println(category + ": " + interests);
+                    interests.forEach(interest -> {
+                        db.addLike(currentUser.getUsername(), category, interest, databaseName);
                     });
-                    System.out.println("Dislikes:");
-                    currentUser.getDislikes().forEach((category, dislikes) -> {
-                        System.out.println(category + ": " + dislikes);
-                        dislikes.forEach(dislike -> {
-                            db.addDislike(currentUser.getUsername(), category, dislike, databaseName);
-                        });
+                });
+                System.out.println("Dislikes:");
+                currentUser.getDislikes().forEach((category, dislikes) -> {
+                    System.out.println(category + ": " + dislikes);
+                    dislikes.forEach(dislike -> {
+                        db.addDislike(currentUser.getUsername(), category, dislike, databaseName);
                     });
-                    System.out.println();
-                }
+                });
+                System.out.println();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
 
-        System.out.println("Opciones: ");
-        System.out.println("1. Iniciar sesión");
-        System.out.println("2. Registrarse");
-        int option = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
+    System.out.println("Opciones: ");
+    System.out.println("1. Iniciar sesión");
+    System.out.println("2. Registrarse");
+    int option = scanner.nextInt();
+    scanner.nextLine(); // Consume newline
 
-        Aplicacion app = new Aplicacion();
-        Neo4jConnection neo4jConnection = new Neo4jConnection(uri, user, password);
+    Aplicacion app = new Aplicacion();
+    Neo4jConnection neo4jConnection = new Neo4jConnection(uri, user, password);
 
-        if (option == 1) {
-            name = app.login(uri, user, password, databaseName);
-            while (name == null) {
-                System.out.println("Usuario o contraseña incorrectos");
-                System.out.println("¿Desea registrarse? (s/n)");
-                String register = scanner.nextLine();
-                if (register.equals("s")) {
-                    app.signin(uri, user, password, databaseName);
-                    name = app.login(uri, user, password, databaseName);
-                }
+    if (option == 1) {
+        name = app.login(uri, user, password, databaseName);
+        while (name == null) {
+            System.out.println("Usuario o contraseña incorrectos");
+            System.out.println("¿Desea registrarse? (s/n)");
+            String register = scanner.nextLine();
+            if (register.equals("s")) {
+                app.signin(uri, user, password, databaseName);
+                name = app.login(uri, user, password, databaseName);
             }
-        } else {
-            app.signin(uri, user, password, databaseName);
-            name = app.login(uri, user, password, databaseName);
         }
+    } else {
+        app.signin(uri, user, password, databaseName);
+        name = app.login(uri, user, password, databaseName);
+    }
 
-        if (name != null) {
-            System.out.println("Bienvenido " + name);
+    if (name != null) {
+        System.out.println("Bienvenido " + name);
 
-            boolean continuar = true;
-            while (continuar) {
-                System.out.println("Opciones: ");
-                System.out.println("1. Añadir gusto");
-                System.out.println("2. Añadir disgusto");
-                System.out.println("3. Ver conexiones basadas en gustos");
-                System.out.println("4. Ver desconexiones basadas en disgustos");
-                System.out.println("5. Salir");
-                int opcion = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
+        boolean continuar = true;
+        while (continuar) {
+            System.out.println("Opciones: ");
+            System.out.println("1. Añadir gusto");
+            System.out.println("2. Añadir disgusto");
+            System.out.println("3. Ver conexiones basadas en gustos");
+            System.out.println("4. Ver desconexiones basadas en disgustos");
+            System.out.println("5. Eliminar usuario");
+            System.out.println("6. Salir");
+            int opcion = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
                 switch (opcion) {
                     case 1:
                         String[] likeData = getInterestData();
@@ -109,22 +109,22 @@ public class Aplicacion {
                         }
                         break;
                     case 5:
-                        continuar = false;
-                        break;
-                    case 6:
                         System.out.print("Ingrese el nombre de usuario a eliminar: ");
                         String deleteUser = scanner.nextLine();
-                        result = neo4jConnection.deleteUser(deleteUser, databaseName);
+                        String result = neo4jConnection.deleteUser(deleteUser, databaseName);
                         System.out.println(result);
+                        break;
+                    case 6:
+                        continuar = false;
                         break;
                     default:
                         System.out.println("Opción inválida.");
                         break;
                 }
             }
-        }
+        } 
     }
-
+    
     private static String[] getInterestData() {
         System.out.println("Seleccione una categoría:");
         for (int i = 0; i < CATEGORIES.length; i++) {
@@ -217,20 +217,22 @@ public class Aplicacion {
                 String[] data = line.split(",");
                 String username = data[0].trim();
                 System.out.println("Nombre de usuario: " + username); // Imprimir el nombre de usuario para depuración
+                
                 // Verificar si el usuario ya existe
                 if (!userExists(username, db, databaseName)) {
                     // Si el usuario no existe, crearlo
                     createUser(username, db, databaseName);
                 }
                 User userObj = new User(username); // Crear un nuevo usuario
+    
                 // Añadir likes y dislikes
-                for (int i = 2; i < data.length; i++) {
+                for (int i = 1; i < data.length; i++) {
                     String interestName = data[i].trim();
                     String sanitizedInterestName = normalizeString(interestName);
-                    if (i < 6) {
+                    if (i <= 4) {
                         userObj.addLike(getCategoryByIndex(i), sanitizedInterestName); // Agregar like al usuario
                     } else {
-                        userObj.addDislike(getCategoryByIndex(i), sanitizedInterestName); // Agregar dislike al usuario
+                        userObj.addDislike(getCategoryByIndex(i - 4), sanitizedInterestName); // Agregar dislike al usuario
                     }
                 }
                 users.add(userObj); // Agregar usuario a la lista
@@ -239,47 +241,37 @@ public class Aplicacion {
         return users;
     }
     
-    
+
     private static boolean userExists(String username, Neo4jConnection db, String databaseName) {
         // Consultar la base de datos Neo4j para verificar si el usuario ya existe
         String password = db.getUserPassword(username, databaseName);
         return password != null;
     }
-    
+
     private static void createUser(String username, Neo4jConnection db, String databaseName) {
         // Crear un nuevo usuario en la base de datos Neo4j
         db.createUser(username, "password", databaseName); // Se puede establecer una contraseña predeterminada
     }
-    
-    private static void addLike(String username, String category, String interest, Neo4jConnection db, String databaseName) {
-        // Añadir un like a un usuario en la base de datos Neo4j
-        db.addLike(username, category, interest, databaseName);
-    }
-    
-    private static void addDislike(String username, String category, String interest, Neo4jConnection db, String databaseName) {
-        // Añadir un dislike a un usuario en la base de datos Neo4j
-        db.addDislike(username, category, interest, databaseName);
-    }
-    
 
     private static String getCategoryByIndex(int index) {
         switch (index) {
+            case 1:
+            case 5:
+                return "Deportes";
             case 2:
             case 6:
-                return "Deportes";
+                return "Cultura";
             case 3:
             case 7:
-                return "Cultura";
+                return "Religión";
             case 4:
             case 8:
-                return "Religión";
-            case 5:
-            case 9:
                 return "Valores";
             default:
                 return "Desconocido";
         }
     }
+    
 
     private static String normalizeString(String input) {
         input = input.toLowerCase();
@@ -288,4 +280,6 @@ public class Aplicacion {
         input = input.replaceAll("\\s+", "");
         return input;
     }
+    
 }
+

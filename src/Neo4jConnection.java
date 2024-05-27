@@ -50,14 +50,14 @@ public class Neo4jConnection implements AutoCloseable {
             return null;
         }
     }
-
+    
     public String addLike(String userName, String category, String like, String databaseName) {
         try (Session session = driver.session()) {
             session.writeTransaction(tx -> {
                 tx.run("MATCH (u:User {name: $userName}) " +
                     "MERGE (l:Interest {name: $like}) " +
-                    "MERGE (u)-[:LIKES]->(l)", 
-                    org.neo4j.driver.Values.parameters("userName", userName, "like", like));         
+                    "MERGE (u)-[:LIKES {category: $category}]->(l)", 
+                    org.neo4j.driver.Values.parameters("userName", userName, "like", like, "category", category));
                 return null;
             });
             return "Gusto añadido exitosamente.";
@@ -72,8 +72,8 @@ public class Neo4jConnection implements AutoCloseable {
             session.writeTransaction(tx -> {
                 tx.run("MATCH (u:User {name: $userName}) " +
                     "MERGE (d:Interest {name: $dislike}) " +
-                    "MERGE (u)-[:DISLIKES]->(d)", 
-                    org.neo4j.driver.Values.parameters("userName", userName, "dislike", dislike));         
+                    "MERGE (u)-[:DISLIKES {category: $category}]->(d)", 
+                    org.neo4j.driver.Values.parameters("userName", userName, "dislike", dislike, "category", category));
                 return null;
             });
             return "Disgusto añadido exitosamente.";
@@ -81,7 +81,8 @@ public class Neo4jConnection implements AutoCloseable {
             e.printStackTrace();
             return "Error al añadir el disgusto.";
         }
-    }    
+    }
+      
 
     public LinkedList<String> connectUsersBasedOnLikes(String databaseName) {
         try (Session session = driver.session()) {
