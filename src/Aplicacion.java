@@ -207,7 +207,9 @@ public class Aplicacion {
         return null;
     }
 
-    private static void loadUsersFromCSV(String filename, String uri, String user, String password, String databaseName) throws IOException {
+    // Método para cargar usuarios desde un archivo CSV
+    private static List<User> loadUsersFromCSV(String filename, String uri, String user, String password, String databaseName) throws IOException {
+        List<User> users = new LinkedList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
             Neo4jConnection db = new Neo4jConnection(uri, user, password);
@@ -219,18 +221,21 @@ public class Aplicacion {
                     // Si el usuario no existe, crearlo
                     createUser(username, db, databaseName);
                 }
+                User userObj = new User(username); // Crear un nuevo usuario
                 // Añadir likes y dislikes
                 for (int i = 2; i < data.length; i++) {
                     String interestName = data[i].trim();
                     String sanitizedInterestName = normalizeString(interestName);
                     if (i < 6) {
-                        addLike(username, getCategoryByIndex(i), sanitizedInterestName, db, databaseName);
+                        userObj.addLike(getCategoryByIndex(i), sanitizedInterestName); // Agregar like al usuario
                     } else {
-                        addDislike(username, getCategoryByIndex(i), sanitizedInterestName, db, databaseName);
+                        userObj.addDislike(getCategoryByIndex(i), sanitizedInterestName); // Agregar dislike al usuario
                     }
                 }
+                users.add(userObj); // Agregar usuario a la lista
             }
         }
+        return users;
     }
     
     private static boolean userExists(String username, Neo4jConnection db, String databaseName) {
