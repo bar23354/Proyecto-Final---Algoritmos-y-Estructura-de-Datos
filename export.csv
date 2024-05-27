@@ -1,6 +1,0 @@
-﻿p
-"(:User {password: ""Adri"",name: ""Adri""})-[:LIKES]->(:Interest {name: ""Videojuegos""})"
-"(:User {password: ""Roberto"",name: ""Roberto B""})-[:LIKES]->(:Interest {name: ""f�tbol""})"
-"(:User {password: ""Roberto"",name: ""Roberto B""})-[:DISLIKES]->(:Interest {name: ""1""})"
-"(:User {password: ""Roberto"",name: ""Roberto B""})-[:LIKES]->(:Interest {name: ""Cultura""})"
-"(:User {password: ""Roberto"",name: ""Roberto B""})-[:DISLIKES]->(:Interest {name: ""Deportes""})"

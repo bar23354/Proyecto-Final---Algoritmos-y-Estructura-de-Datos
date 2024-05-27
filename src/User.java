@@ -11,8 +11,9 @@ public class User {
     private Map<String, Set<String>> likes;
     private Map<String, Set<String>> dislikes;
 
-    public User(String username) {
+    public User(String username, String password) {
         this.username = username;
+        this.password = password;
         this.likes = new HashMap<>();
         this.dislikes = new HashMap<>();
     }
@@ -21,8 +22,8 @@ public class User {
         return username;
     }
 
-    public void setSignIn(String password) {
-        this.password = password;
+    public String getPassword() {
+        return password;
     }
 
     public Map<String, Set<String>> getLikes() {

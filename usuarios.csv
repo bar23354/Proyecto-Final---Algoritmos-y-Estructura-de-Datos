@@ -1,8 +1,3 @@
-Maria,password1,fútbol,respeto,historia,cristianismo,pintura,honestidad,ciencias,islam
-Joaquin,password2,pintura,honestidad,ciencias,islam,viajes,respeto,historia,hinduismo
-Sean,password3,lectura,respeto,ciencias,budismo,música,solidaridad,matemáticas,cristianismo
-john,password4,Movies,Books,Music,Sports,Cooking,Gambling,Smoking,Fishing
-jane,password5,Art,Travel,Reading,Dancing,CrowdedPlaces,Noise,SpicyFood,Snakes
-doe,Technology,Science,History,Photography,Pollution,Rain,Snow,Heat
-
-
+Maria,password1,Deportes:fútbol,Valores:respeto,Historia:historia,Religión:cristianismo,Arte:pintura,Valores:honestidad,Ciencias:ciencias,Religión:!islam
+Joaquin,password2,Arte:pintura,Valores:honestidad,Ciencias:ciencias,Religión:islam,Viajes:viajes,Valores:respeto,Historia:historia,Religión:!hinduismo
+Sean,password3,Lectura:lectura,Valores:respeto,Ciencias:ciencias,Religión:!budismo,Música:música,Valores:solidaridad,Matemáticas:matemáticas,Religión:cristianismo
