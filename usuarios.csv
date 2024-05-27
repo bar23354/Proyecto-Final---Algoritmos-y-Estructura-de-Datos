@@ -1,25 +1,25 @@
-p
-"(:User {password: ""password1"",name: ""Maria""})-[:LIKES]->(:Interest {name: ""fútbol""})"
-"(:User {password: ""password1"",name: ""Maria""})-[:LIKES]->(:Interest {name: ""respeto""})"
-"(:User {password: ""password1"",name: ""Maria""})-[:LIKES]->(:Interest {name: ""historia""})"
-"(:User {password: ""password1"",name: ""Maria""})-[:LIKES]->(:Interest {name: ""cristianismo""})"
-"(:User {password: ""password1"",name: ""Maria""})-[:DISLIKES]->(:Interest {name: ""pintura""})"
-"(:User {password: ""password1"",name: ""Maria""})-[:DISLIKES]->(:Interest {name: ""honestidad""})"
-"(:User {password: ""password1"",name: ""Maria""})-[:DISLIKES]->(:Interest {name: ""ciencias""})"
-"(:User {password: ""password1"",name: ""Maria""})-[:DISLIKES]->(:Interest {name: ""islam""})"
-"(:User {password: ""password2"",name: ""Joaquin""})-[:LIKES]->(:Interest {name: ""pintura""})"
-"(:User {password: ""password2"",name: ""Joaquin""})-[:LIKES]->(:Interest {name: ""honestidad""})"
-"(:User {password: ""password2"",name: ""Joaquin""})-[:LIKES]->(:Interest {name: ""ciencias""})"
-"(:User {password: ""password2"",name: ""Joaquin""})-[:LIKES]->(:Interest {name: ""islam""})"
-"(:User {password: ""password2"",name: ""Joaquin""})-[:DISLIKES]->(:Interest {name: ""viajes""})"
-"(:User {password: ""password2"",name: ""Joaquin""})-[:DISLIKES]->(:Interest {name: ""respeto""})"
-"(:User {password: ""password2"",name: ""Joaquin""})-[:DISLIKES]->(:Interest {name: ""historia""})"
-"(:User {password: ""password2"",name: ""Joaquin""})-[:DISLIKES]->(:Interest {name: ""hinduismo""})"
-"(:User {password: ""password3"",name: ""Sean""})-[:LIKES]->(:Interest {name: ""lectura""})"
-"(:User {password: ""password3"",name: ""Sean""})-[:LIKES]->(:Interest {name: ""respeto""})"
-"(:User {password: ""password3"",name: ""Sean""})-[:LIKES]->(:Interest {name: ""ciencias""})"
-"(:User {password: ""password3"",name: ""Sean""})-[:LIKES]->(:Interest {name: ""budismo""})"
-"(:User {password: ""password3"",name: ""Sean""})-[:DISLIKES]->(:Interest {name: ""música""})"
-"(:User {password: ""password3"",name: ""Sean""})-[:DISLIKES]->(:Interest {name: ""solidaridad""})"
-"(:User {password: ""password3"",name: ""Sean""})-[:DISLIKES]->(:Interest {name: ""matemáticas""})"
-"(:User {password: ""password3"",name: ""Sean""})-[:DISLIKES]->(:Interest {name: ""cristianismo""})"
+Maria, pasatiempo, fútbol
+Maria, principios y valores, respeto
+Maria, educacion, historia
+Maria, religion, cristianismo
+Maria, pasatiempo, pintura
+Maria, principios y valores, honestidad
+Maria, educacion, ciencias
+Maria, religion, islam
+Joaquin, pasatiempo, pintura
+Joaquin, principios y valores, honestidad
+Joaquin, educacion, ciencias
+Joaquin, religion, islam
+Joaquin, pasatiempo, viajes
+Joaquin, principios y valores, respeto
+Joaquin, educacion, historia
+Joaquin, religion, hinduismo
+Sean, pasatiempo, lectura
+Sean, principios y valores, respeto
+Sean, educacion, ciencias
+Sean, religion, budismo
+Sean, pasatiempo, música
+Sean, principios y valores, solidaridad
+Sean, educacion, matemáticas
+Sean, religion, cristianismo
+
