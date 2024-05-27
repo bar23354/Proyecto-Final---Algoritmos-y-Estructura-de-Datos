@@ -55,9 +55,9 @@ public class Neo4jConnection implements AutoCloseable {
         try (Session session = driver.session()) {
             session.writeTransaction(tx -> {
                 tx.run("MATCH (u:User {name: $userName}) " +
-                       "MERGE (l:Interest {name: $like}) " +
-                       "MERGE (u)-[:LIKES]->(l)", 
-                       org.neo4j.driver.Values.parameters("userName", userName, "category", category, "like", like));
+                    "MERGE (l:Interest {name: $like}) " +
+                    "MERGE (u)-[:LIKES]->(l)", 
+                    org.neo4j.driver.Values.parameters("userName", userName, "like", like));         
                 return null;
             });
             return "Gusto añadido exitosamente.";
@@ -66,14 +66,14 @@ public class Neo4jConnection implements AutoCloseable {
             return "Error al añadir el gusto.";
         }
     }
-
+    
     public String addDislike(String userName, String category, String dislike, String databaseName) {
         try (Session session = driver.session()) {
             session.writeTransaction(tx -> {
                 tx.run("MATCH (u:User {name: $userName}) " +
-                       "MERGE (d:Interest {name: $dislike}) " +
-                       "MERGE (u)-[:DISLIKES]->(d)", 
-                       org.neo4j.driver.Values.parameters("userName", userName, "category", category, "dislike", dislike));
+                    "MERGE (d:Interest {name: $dislike}) " +
+                    "MERGE (u)-[:DISLIKES]->(d)", 
+                    org.neo4j.driver.Values.parameters("userName", userName, "dislike", dislike));         
                 return null;
             });
             return "Disgusto añadido exitosamente.";
@@ -81,7 +81,7 @@ public class Neo4jConnection implements AutoCloseable {
             e.printStackTrace();
             return "Error al añadir el disgusto.";
         }
-    }
+    }    
 
     public LinkedList<String> connectUsersBasedOnLikes(String databaseName) {
         try (Session session = driver.session()) {

@@ -207,15 +207,16 @@ public class Aplicacion {
         return null;
     }
 
-    // Método para cargar usuarios desde un archivo CSV
     private static List<User> loadUsersFromCSV(String filename, String uri, String user, String password, String databaseName) throws IOException {
         List<User> users = new LinkedList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
             Neo4jConnection db = new Neo4jConnection(uri, user, password);
             while ((line = br.readLine()) != null) {
+                System.out.println("Línea del CSV: " + line); // Imprimir la línea para depuración
                 String[] data = line.split(",");
                 String username = data[0].trim();
+                System.out.println("Nombre de usuario: " + username); // Imprimir el nombre de usuario para depuración
                 // Verificar si el usuario ya existe
                 if (!userExists(username, db, databaseName)) {
                     // Si el usuario no existe, crearlo
@@ -237,6 +238,7 @@ public class Aplicacion {
         }
         return users;
     }
+    
     
     private static boolean userExists(String username, Neo4jConnection db, String databaseName) {
         // Consultar la base de datos Neo4j para verificar si el usuario ya existe
