@@ -12,12 +12,12 @@ public class Aplicacion {
     private static Scanner scanner = new Scanner(System.in);
     private static final String[] CATEGORIES = {"Deportes", "Cultura", "Religión", "Valores"};
 
-public static void main(String[] args) {
+public static void main(String[] args) throws IOException {
     String uri = "bolt://localhost:7687";
     String user = "neo4j";
     String password = "password";
     String databaseName = "neo4j2";
-    String name;
+    String name = null;
 
     // Carga de usuarios desde CSV
     try {
@@ -29,22 +29,31 @@ public static void main(String[] args) {
                 currentUser.getLikes().forEach((category, interests) -> {
                     System.out.println(category + ": " + interests);
                     interests.forEach(interest -> {
-                        db.addLike(currentUser.getUsername(), category, interest, databaseName);
+                        String result = db.addLike(currentUser.getUsername(), category, interest, databaseName);
+                        if (result.startsWith("Error")) {
+                            System.err.println(result);
+                        }
                     });
                 });
                 System.out.println("Dislikes:");
                 currentUser.getDislikes().forEach((category, dislikes) -> {
                     System.out.println(category + ": " + dislikes);
                     dislikes.forEach(dislike -> {
-                        db.addDislike(currentUser.getUsername(), category, dislike, databaseName);
+                        String result = db.addDislike(currentUser.getUsername(), category, dislike, databaseName);
+                        if (result.startsWith("Error")) {
+                            System.err.println(result);
+                        }
                     });
                 });
-                System.out.println();
             }
+        } catch (Exception e) {
+            System.err.println("Error cerrando la conexión a Neo4j: " + e.getMessage());
+            e.printStackTrace();
         }
-    } catch (IOException e) {
+    } catch (Exception e) {
+        System.err.println("Error al cargar usuarios desde CSV: " + e.getMessage());
         e.printStackTrace();
-    }
+    }    
 
     System.out.println("Opciones: ");
     System.out.println("1. Iniciar sesión");
@@ -207,36 +216,42 @@ public static void main(String[] args) {
         return null;
     }
 
-    private static List<User> loadUsersFromCSV(String filename, String uri, String user, String password, String databaseName) throws IOException {
+    private static List<User> loadUsersFromCSV(String filename, String uri, String user, String password, String databaseName) {
         List<User> users = new LinkedList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
             Neo4jConnection db = new Neo4jConnection(uri, user, password);
             while ((line = br.readLine()) != null) {
-                System.out.println("Línea del CSV: " + line); // Imprimir la línea para depuración
-                String[] data = line.split(",");
-                String username = data[0].trim();
-                System.out.println("Nombre de usuario: " + username); // Imprimir el nombre de usuario para depuración
-                
-                // Verificar si el usuario ya existe
-                if (!userExists(username, db, databaseName)) {
-                    // Si el usuario no existe, crearlo
-                    createUser(username, db, databaseName);
-                }
-                User userObj = new User(username); // Crear un nuevo usuario
+                try {
+                    System.out.println("Línea del CSV: " + line); // Imprimir la línea para depuración
+                    String[] data = line.split(",");
+                    String username = data[0].trim();
+                    System.out.println("Nombre de usuario: " + username); // Imprimir el nombre de usuario para depuración
     
-                // Añadir likes y dislikes
-                for (int i = 1; i < data.length; i++) {
-                    String interestName = data[i].trim();
-                    String sanitizedInterestName = normalizeString(interestName);
-                    if (i <= 4) {
-                        userObj.addLike(getCategoryByIndex(i), sanitizedInterestName); // Agregar like al usuario
-                    } else {
-                        userObj.addDislike(getCategoryByIndex(i - 4), sanitizedInterestName); // Agregar dislike al usuario
+                    if (!userExists(username, db, databaseName)) {
+                        createUser(username, db, databaseName);
                     }
+    
+                    User userObj = new User(username);
+    
+                    for (int i = 1; i < data.length; i++) {
+                        String interestName = data[i].trim();
+                        String sanitizedInterestName = normalizeString(interestName);
+                        if (i <= 4) {
+                            userObj.addLike(getCategoryByIndex(i), sanitizedInterestName);
+                        } else {
+                            userObj.addDislike(getCategoryByIndex(i - 4), sanitizedInterestName);
+                        }
+                    }
+                    users.add(userObj);
+                } catch (Exception e) {
+                    System.err.println("Error procesando línea: " + line);
+                    e.printStackTrace();
                 }
-                users.add(userObj); // Agregar usuario a la lista
             }
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo CSV: " + e.getMessage());
+            e.printStackTrace();
         }
         return users;
     }

@@ -30,7 +30,7 @@ public class Neo4jConnection implements AutoCloseable {
             return "Usuario creado exitosamente.";
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error al crear el usuario.";
+            return "Error al crear el usuario: " + e.getMessage();
         }
     }
 
@@ -63,7 +63,7 @@ public class Neo4jConnection implements AutoCloseable {
             return "Gusto añadido exitosamente.";
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error al añadir el gusto.";
+            return "Error al añadir el gusto: " + e.getMessage();
         }
     }
     
@@ -79,10 +79,9 @@ public class Neo4jConnection implements AutoCloseable {
             return "Disgusto añadido exitosamente.";
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error al añadir el disgusto.";
+            return "Error al añadir el disgusto: " + e.getMessage();
         }
     }
-      
 
     public LinkedList<String> connectUsersBasedOnLikes(String databaseName) {
         try (Session session = driver.session()) {
@@ -132,7 +131,7 @@ public class Neo4jConnection implements AutoCloseable {
             return "Usuario eliminado exitosamente.";
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error al eliminar el usuario.";
+            return "Error al eliminar el usuario: " + e.getMessage();
         }
     }
 }
