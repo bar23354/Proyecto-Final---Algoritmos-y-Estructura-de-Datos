@@ -1,6 +1,11 @@
 # Proyecto-Final---Algoritmos-y-Estructura-de-Datos
 Algoritmo de recomendación: Date Site
 
+Isabella Obando, 23074
+Mia Fuentes, 23775
+Roberto Barreda, 23354
+
+
 Paso 1: Preparar el Entorno de Desarrollo
 Instalar Java Development Kit (JDK):
 
