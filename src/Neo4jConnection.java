@@ -229,7 +229,22 @@ public class Neo4jConnection implements AutoCloseable {
             });
         }
     }
-}
+
     /**
      * Verifica si un usuario existe en la base de datos.
 */
+
+    public boolean userExists(String username, String databaseName) {
+        try (Session session = driver.session()) {
+            return session.readTransaction(new TransactionWork<Boolean>() {
+                @Override
+                public Boolean execute(Transaction tx) {
+                    Result result = tx.run("MATCH (u:User {name: $username}) RETURN u",
+                            org.neo4j.driver.Values.parameters("username", username));
+                    return result.hasNext();
+                }
+            });
+        }
+    }
+
+}
