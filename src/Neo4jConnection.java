@@ -12,18 +12,41 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * La clase Neo4jConnection maneja la conexión y las operaciones con una base de datos Neo4j.
+ */
 public class Neo4jConnection implements AutoCloseable {
     private final Driver driver;
 
+    /**
+     * Crea una nueva conexión a la base de datos Neo4j.
+     *
+     * @param uri      La URI de la base de datos Neo4j.
+     * @param user     El nombre de usuario para autenticarse en la base de datos.
+     * @param password La contraseña para autenticarse en la base de datos.
+     */
     public Neo4jConnection(String uri, String user, String password) {
         driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
     }
 
+    /**
+     * Cierra la conexión a la base de datos Neo4j.
+     *
+     * @throws Exception Si ocurre un error al cerrar la conexión.
+     */
     @Override
     public void close() throws Exception {
         driver.close();
     }
 
+    /**
+     * Crea un nuevo usuario en la base de datos.
+     *
+     * @param name         El nombre del usuario.
+     * @param password     La contraseña del usuario.
+     * @param databaseName El nombre de la base de datos.
+     * @return Un mensaje indicando el resultado de la operación.
+     */
     public String createUser(String name, String password, String databaseName) {
         try (Session session = driver.session()) {
             return session.writeTransaction(new TransactionWork<String>() {
@@ -43,6 +66,15 @@ public class Neo4jConnection implements AutoCloseable {
         }
     }
 
+    /**
+     * Añade un gusto (like) para un usuario en una categoria específica.
+     *
+     * @param username     El nombre del usuario.
+     * @param category     La categoría del gusto.
+     * @param interest     El gusto específico.
+     * @param databaseName El nombre de la base de datos.
+     * @return Un mensaje indicando el resultado de la operación.
+     */
     public String addLike(String username, String category, String interest, String databaseName) {
         try (Session session = driver.session()) {
             session.writeTransaction(tx -> {
@@ -56,6 +88,15 @@ public class Neo4jConnection implements AutoCloseable {
         }
     }
     
+    /**
+     * Añade un disgusto (dislike) para un usuario en una categoria específica.
+     *
+     * @param username     El nombre del usuario.
+     * @param category     La categoría del disgusto.
+     * @param interest     El disgusto específico.
+     * @param databaseName El nombre de la base de datos.
+     * @return Un mensaje indicando el resultado de la operación.
+     */
     public String addDislike(String username, String category, String interest, String databaseName) {
         try (Session session = driver.session()) {
             session.writeTransaction(tx -> {
@@ -69,6 +110,12 @@ public class Neo4jConnection implements AutoCloseable {
         }
     }
 
+    /**
+     * Conecta usuarios basados en gustos compartidos.
+     *
+     * @param databaseName El nombre de la base de datos.
+     * @return Una lista de cadenas que representan las conexiones de usuarios basadas en gustos.
+     */
     public LinkedList<String> connectUsersBasedOnLikes(String databaseName) {
         try (Session session = driver.session()) {
             return session.readTransaction(new TransactionWork<LinkedList<String>>() {
@@ -89,6 +136,12 @@ public class Neo4jConnection implements AutoCloseable {
         }
     }
 
+    /**
+     * Desconecta usuarios basados en disgustos compartidos.
+     *
+     * @param databaseName El nombre de la base de datos.
+     * @return Una lista de cadenas que representan las desconexiones de usuarios basadas en disgustos.
+     */
     public LinkedList<String> disconnectUsersBasedOnDislikes(String databaseName) {
         try (Session session = driver.session()) {
             return session.readTransaction(new TransactionWork<LinkedList<String>>() {
@@ -109,6 +162,13 @@ public class Neo4jConnection implements AutoCloseable {
         }
     }
 
+    /**
+     * Obtiene una lista de usuarios aleatorios.
+     *
+     * @param limit        El número máximo de usuarios a retornar.
+     * @param databaseName El nombre de la base de datos.
+     * @return Una lista de nombres de usuarios seleccionados aleatoriamente.
+     */
     public LinkedList<String> getRandomUsers(int limit, String databaseName) {
         try (Session session = driver.session()) {
             return session.readTransaction(new TransactionWork<LinkedList<String>>() {
@@ -127,6 +187,13 @@ public class Neo4jConnection implements AutoCloseable {
         }
     }
 
+    /**
+     * Elimina un usuario de la base de datos.
+     *
+     * @param name         El nombre del usuario.
+     * @param databaseName El nombre de la base de datos.
+     * @return Un mensaje indicando el resultado de la operación.
+     */
     public String deleteUser(String name, String databaseName) {
         try (Session session = driver.session()) {
             return session.writeTransaction(new TransactionWork<String>() {
@@ -140,6 +207,13 @@ public class Neo4jConnection implements AutoCloseable {
         }
     }
 
+    /**
+     * Obtiene la contraseña de un usuario de la base de datos.
+     *
+     * @param name         El nombre del usuario.
+     * @param databaseName El nombre de la base de datos.
+     * @return La contraseña del usuario, o {@code null} si el usuario no existe.
+     */
     public String getUserPassword(String name, String databaseName) {
         try (Session session = driver.session()) {
             return session.readTransaction(new TransactionWork<String>() {
@@ -155,18 +229,7 @@ public class Neo4jConnection implements AutoCloseable {
             });
         }
     }
-
-    public boolean userExists(String username, String databaseName) {
-        try (Session session = driver.session()) {
-            return session.readTransaction(new TransactionWork<Boolean>() {
-                @Override
-                public Boolean execute(Transaction tx) {
-                    Result result = tx.run("MATCH (u:User {name: $username}) RETURN u",
-                            org.neo4j.driver.Values.parameters("username", username));
-                    return result.hasNext();
-                }
-            });
-        }
-    }
-    
 }
+    /**
+     * Verifica si un usuario existe en la base de datos.
+*/

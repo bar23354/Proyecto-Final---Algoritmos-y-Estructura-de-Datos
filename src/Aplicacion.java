@@ -1,3 +1,11 @@
+/**
+ * Universidad del Valle de Guatemala
+ * @author Isabella Obando, 23074
+ * @author Mia Alejandra Fuentes Merida, 23775
+ * @author Roberto Barreda, 23354
+ * @description Clase principal de la aplicación que interactúa con una base de datos Neo4j para
+ * @date creación 23/05/2024 última modificación 28/05/2024
+ */
 package src;
 
 import java.io.BufferedReader;
@@ -12,11 +20,20 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 
+/**
+ * manejar usuarios, gustos y disgustos y sus relaciones
+ */
+
 public class Aplicacion {
     private static Scanner scanner = new Scanner(System.in);
     private static final String[] CATEGORIES = {"Deportes", "Cultura", "Religión", "Valores"};
     private Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "password"));
 
+    /**
+     * Método principal que ejecuta la aplicacion
+     *
+     * @param args Argumentos de la linea de comandos
+     */
     public static void main(String[] args) {
         String uri = "bolt://localhost:7687";
         String user = "neo4j";
@@ -153,6 +170,11 @@ public class Aplicacion {
         }
     }
 
+    /**
+     * Obtiene los datos de interes desde la entrada del usuario
+     *
+     * @return Un arreglo de Strings donde el primer elemento es la categoría y el segundo es el interés normalizado
+     */
     private static String[] getInterestData() {
         System.out.println("Seleccione una categoría:");
         for (int i = 0; i < CATEGORIES.length; i++) {
@@ -168,6 +190,14 @@ public class Aplicacion {
         return new String[]{category, normalizeString(interest)};
     }
 
+    /**
+     * permite al usuario registrarse en la aplicacion
+     *
+     * @param uri La URI de la base de datos.
+     * @param user El nombre de usuario de la base de datos.
+     * @param password La contraseña de la base de datos.
+     * @param databaseName El nombre de la base de datos.
+     */
     public void signin(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             System.out.println("Ingrese su nombre de usuario: ");
@@ -181,6 +211,17 @@ public class Aplicacion {
         }
     }
 
+    /**
+     * añade un gusto a un usuario en la base de datos
+     *
+     * @param uri La URI de la base de datos.
+     * @param user El nombre de usuario de la base de datos.
+     * @param password La contraseña de la base de datos.
+     * @param databaseName El nombre de la base de datos.
+     * @param userName El nombre de usuario al que se añadirá el gusto.
+     * @param category La categoría del gusto.
+     * @param like El gusto a añadir.
+     */
     public void addLike(String uri, String user, String password, String databaseName, String userName, String category, String like) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             String result = db.addLike(userName, category, like, databaseName);
@@ -190,6 +231,17 @@ public class Aplicacion {
         }
     }
 
+    /**
+     * agrega un disgusto a un usuario en la base de datos
+     *
+     * @param uri La URI de la base de datos.
+     * @param user El nombre de usuario de la base de datos.
+     * @param password La contraseña de la base de datos.
+     * @param databaseName El nombre de la base de datos.
+     * @param userName El nombre de usuario al que se añadirá el disgusto.
+     * @param category La categoría del disgusto.
+     * @param dislike El disgusto a añadir.
+     */
     public void addDislike(String uri, String user, String password, String databaseName, String userName, String category, String dislike) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             String result = db.addDislike(userName, category, dislike, databaseName);
@@ -199,6 +251,15 @@ public class Aplicacion {
         }
     }
 
+    /**
+     * conecta usuarios basándose en sus gustos
+     *
+     * @param uri La URI de la base de datos.
+     * @param user El nombre de usuario de la base de datos.
+     * @param password La contraseña de la base de datos.
+     * @param databaseName El nombre de la base de datos.
+     * @return Una lista de conexiones entre usuarios.
+     */
     public LinkedList<String> connectUsersBasedOnLikes(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             return db.connectUsersBasedOnLikes(databaseName);
@@ -208,6 +269,15 @@ public class Aplicacion {
         }
     }
 
+    /**
+     * desconecta usuarios guiandose en sus disgustos
+     *
+     * @param uri La URI de la base de datos.
+     * @param user El nombre de usuario de la base de datos.
+     * @param password La contraseña de la base de datos.
+     * @param databaseName El nombre de la base de datos.
+     * @return Una lista de desconexiones entre usuarios.
+     */
     public LinkedList<String> disconnectUsersBasedOnDislikes(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             return db.disconnectUsersBasedOnDislikes(databaseName);
@@ -217,6 +287,15 @@ public class Aplicacion {
         }
     }
 
+    /**
+     * inicia sesión en la aplicación
+     *
+     * @param uri La URI de la base de datos.
+     * @param user El nombre de usuario de la base de datos.
+     * @param password La contraseña de la base de datos.
+     * @param databaseName El nombre de la base de datos.
+     * @return El nombre del usuario si el inicio de sesión fue exitoso, de lo contrario null.
+     */
     public String login(String uri, String user, String password, String databaseName) {
         try (Neo4jConnection db = new Neo4jConnection(uri, user, password)) {
             System.out.println("Ingrese su nombre de usuario: ");
@@ -235,6 +314,16 @@ public class Aplicacion {
         return null;
     }
 
+    /**
+     * carga una lista de usuarios desde un archivo CSV
+     *
+     * @param filename El nombre del archivo CSV.
+     * @param uri La URI de la base de datos.
+     * @param user El nombre de usuario de la base de datos.
+     * @param password La contraseña de la base de datos.
+     * @param databaseName El nombre de la base de datos.
+     * @return Una lista de usuarios.
+     */
     private static List<User> loadUsersFromCSV(String filename, String uri, String user, String password, String databaseName) {
         List<User> users = new LinkedList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
@@ -286,6 +375,12 @@ public class Aplicacion {
     }
     
 
+    /**
+     * Normaliza una cadena eliminando acentos y convirtiéndola a minúsculas.
+     *
+     * @param input La cadena a normalizar.
+     * @return La cadena normalizada.
+     */
     private static String normalizeString(String input) {
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
         return normalized.toLowerCase().trim();
