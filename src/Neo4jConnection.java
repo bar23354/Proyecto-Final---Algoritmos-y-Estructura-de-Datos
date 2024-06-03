@@ -44,17 +44,19 @@ public class Neo4jConnection implements AutoCloseable {
      *
      * @param name         El nombre del usuario.
      * @param password     La contraseña del usuario.
+     * @param gender       El género del usuario.
+     * @param sexuality    La sexualidad del usuario.
      * @param databaseName El nombre de la base de datos.
      * @return Un mensaje indicando el resultado de la operación.
      */
-    public String createUser(String name, String password, String databaseName) {
+    public String createUser(String name, String password, String gender, String sexuality, String databaseName) {
         try (Session session = driver.session()) {
             return session.writeTransaction(new TransactionWork<String>() {
                 @Override
                 public String execute(Transaction tx) {
                     String result;
-                    Result res = tx.run("MERGE (u:User {name: $name}) RETURN u.name",
-                            org.neo4j.driver.Values.parameters("name", name));
+                    Result res = tx.run("MERGE (u:User {name: $name, password: $password, gender: $gender, sexuality: $sexuality}) RETURN u.name",
+                            org.neo4j.driver.Values.parameters("name", name, "password", password, "gender", gender, "sexuality", sexuality));
                     if (res.hasNext()) {
                         result = "User " + name + " created successfully.";
                     } else {
@@ -87,7 +89,7 @@ public class Neo4jConnection implements AutoCloseable {
             return "Like added successfully.";
         }
     }
-    
+
     /**
      * Añade un disgusto (dislike) para un usuario en una categoria específica.
      *
@@ -119,7 +121,7 @@ public class Neo4jConnection implements AutoCloseable {
     public LinkedList<String> connectUsersBasedOnLikes(String databaseName) {
         try (Session session = driver.session()) {
             return session.readTransaction(new TransactionWork<LinkedList<String>>() {
-                @Override
+
                 public LinkedList<String> execute(Transaction tx) {
                     LinkedList<String> connections = new LinkedList<>();
                     Result result = tx.run("MATCH (u1:User)-[:LIKES]->(i:Interest)<-[:LIKES]-(u2:User) " +
@@ -129,6 +131,39 @@ public class Neo4jConnection implements AutoCloseable {
                     while (result.hasNext()) {
                         var record = result.next();
                         connections.add(record.get("u1.name").asString() + " y " + record.get("u2.name").asString() + " comparten " + record.get("sharedLikes").asInt() + " gustos.");
+                    }
+                    return connections;
+                }
+            });
+        }
+    }
+
+    /**
+     * Conecta un usuario específico con otros usuarios basados en gustos compartidos.
+     *
+     * @param username     El nombre del usuario.
+     * @param databaseName El nombre de la base de datos.
+     * @return Una lista de cadenas que representan las conexiones del usuario basado en gustos.
+     */
+    public LinkedList<String> connectUserBasedOnLikes(String username, String databaseName) {
+        try (Session session = driver.session()) {
+            return session.readTransaction(new TransactionWork<LinkedList<String>>() {
+                @Override
+                public LinkedList<String> execute(Transaction tx) {
+                    LinkedList<String> connections = new LinkedList<>();
+                    Result result = tx.run("MATCH (u1:User {name: $username})-[:LIKES]->(i:Interest)<-[:LIKES]-(u2:User) " +
+                            "WHERE u1.name < u2.name " +
+                            "AND u1.sexuality = u2.gender " +
+                            "AND u2.sexuality = u1.gender " +
+                            "RETURN u2.name, COLLECT(i.name) AS sharedInterests, COUNT(i) AS sharedLikes " +
+                            "ORDER BY sharedLikes DESC",
+                            org.neo4j.driver.Values.parameters("username", username));
+                    while (result.hasNext()) {
+                        var record = result.next();
+                        String otherUser = record.get("u2.name").asString();
+                        List<String> interests = record.get("sharedInterests").asList(v -> v.asString());
+                        int sharedLikes = record.get("sharedLikes").asInt();
+                        connections.add(username + " y " + otherUser + " comparten " + sharedLikes + " gustos: " + interests);
                     }
                     return connections;
                 }
@@ -232,8 +267,7 @@ public class Neo4jConnection implements AutoCloseable {
 
     /**
      * Verifica si un usuario existe en la base de datos.
-*/
-
+     */
     public boolean userExists(String username, String databaseName) {
         try (Session session = driver.session()) {
             return session.readTransaction(new TransactionWork<Boolean>() {
@@ -246,5 +280,4 @@ public class Neo4jConnection implements AutoCloseable {
             });
         }
     }
-
 }

@@ -24,10 +24,9 @@ import org.neo4j.driver.GraphDatabase;
  * manejar usuarios, gustos y disgustos y sus relaciones
  */
 
-public class Aplicacion {
+ public class Aplicacion {
     private static Scanner scanner = new Scanner(System.in);
     private static final String[] CATEGORIES = {"Deportes", "Cultura", "Religión", "Valores"};
-    private Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "password"));
 
     /**
      * Método principal que ejecuta la aplicacion
@@ -42,6 +41,7 @@ public class Aplicacion {
         String name = null;
         Scanner scanner = new Scanner(System.in);
 
+        Driver driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
         // Carga de usuarios desde CSV
         try {
             List<User> users = loadUsersFromCSV("usuarios.csv", uri, user, password, databaseName);
@@ -87,7 +87,7 @@ public class Aplicacion {
                             name = scanner.nextLine();
                             System.out.print("Ingrese la contraseña del usuario: ");
                             String userPassword = scanner.nextLine();
-                            String createUserResult = db.createUser(name, userPassword, databaseName);
+                            String createUserResult = db.createUser(name, userPassword, databaseName, userPassword, userPassword);
                             System.out.println(createUserResult);
                             break;
 
@@ -204,7 +204,7 @@ public class Aplicacion {
             String name = scanner.nextLine();
             System.out.println("Ingrese su contraseña: ");
             String pass = scanner.nextLine();
-            String result = db.createUser(name, pass, databaseName);
+            String result = db.createUser(name, pass, databaseName, result, result);
             System.out.println(result);
         } catch (Exception e) {
             e.printStackTrace();
@@ -338,7 +338,7 @@ public class Aplicacion {
                 try {
                     String username = normalizeString(data[0]);
                     String userPassword = data[1];
-                    db.createUser(username, userPassword, databaseName);
+                    db.createUser(username, userPassword, databaseName, userPassword, userPassword);
                     User userObj = new User(username, userPassword);
                     for (int i = 2; i < data.length; i++) {
                         String interest = data[i];

@@ -6,6 +6,13 @@
       "name": "Aplicacion",
       "request": "launch",
       "mainClass": "src.Aplicacion",
+      "projectName": "Proyecto-Final---Algoritmos-y-Estructura-de-Datos-1_8e122e57"
+    },
+    {
+      "type": "java",
+      "name": "Aplicacion",
+      "request": "launch",
+      "mainClass": "src.Aplicacion",
       "projectName": "Proyecto-Final---Algoritmos-y-Estructura-de-Datos_99dab973"
     },
     {
