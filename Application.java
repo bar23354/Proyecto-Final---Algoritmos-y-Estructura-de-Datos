@@ -1,21 +1,43 @@
+/**
+ * Universidad del Valle de Guatemala
+ * @author Isabella Obando, 23074
+ * @author Mia Alejandra Fuentes Merida, 23775
+ * @author Roberto Barreda, 23354
+ * @description Clase principal de la aplicación que interactúa con una base de datos Neo4j para
+ * @date creación 23/05/2024 última modificación 28/05/2024
+ */
+
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * Clase principal de la aplicación de sistema de recomendaciones.
+ */
 public class Application {
-    private RecommendationSystem recommendationSystem;
-    private Scanner scanner;
-    private User currentUser;
+    private RecommendationSystem recommendationSystem; // Maneja la lógica de recomendaciones
+    private Scanner scanner; // Maneja la entrada del usuario
+    private User currentUser; // Representa al usuario que ha iniciado sesión actualmente
 
+    /**
+     * Constructor de la clase Application.
+     * Inicializa el sistema de recomendaciones y el escáner de entrada.
+     */
     public Application() {
-        this.recommendationSystem = new RecommendationSystem("bolt://localhost:7687", "neo4j", "password");
-        this.scanner = new Scanner(System.in);
+        this.recommendationSystem = new RecommendationSystem("bolt://localhost:7687", "neo4j", "password"); // Inicializa el sistema de recomendaciones
+        this.scanner = new Scanner(System.in); // Inicializa el escáner para la entrada del usuario
     }
 
+    /**
+     * Método principal que inicia la aplicación.
+     * Muestra el menú principal y maneja la lógica de navegación.
+     */
     public void start() {
-        boolean exit = false;
+        boolean exit = false; // Bandera para controlar el bucle principal
 
         while (!exit) {
+            // Muestra el menú principal
             System.out.println("Bienvenido al sistema de recomendaciones");
             System.out.println("1. Crear usuario");
             System.out.println("2. Iniciar sesión");
@@ -24,8 +46,9 @@ public class Application {
 
             try {
                 int choice = scanner.nextInt();
-                scanner.nextLine();  // Consumir la nueva línea
+                scanner.nextLine();  // Consume la nueva línea
 
+                // Maneja la opción del menú seleccionada por el usuario
                 switch (choice) {
                     case 1:
                         createUser();
@@ -45,11 +68,15 @@ public class Application {
                 }
             } catch (InputMismatchException e) {
                 System.out.println("Entrada no válida. Por favor, ingrese un número.");
-                scanner.nextLine();  // Consumir la nueva línea
+                scanner.nextLine();  // Consume la nueva línea
             }
         }
     }
 
+    /**
+     * Método para crear un nuevo usuario.
+     * Solicita información del usuario y agrega el nuevo usuario al sistema de recomendaciones.
+     */
     private void createUser() {
         System.out.print("Ingrese nombre de usuario: ");
         String username = scanner.nextLine().toLowerCase();
@@ -59,9 +86,8 @@ public class Application {
         User newUser = new User(username, password);
 
         newUser.addDealBreaker("sexo", getValidInput("Ingrese sexo (masculino/femenino): ", new String[]{"masculino", "femenino"}));
-        newUser.addDealBreaker("sexualidad", getValidInput("Ingrese sexualidad (heterosexual/homosexual): ", new String[]{"heterosexual", "homosexual"}));
-        System.out.print("Ingrese tipo de relación que busca: ");
-        newUser.addDealBreaker("tipo de relación", scanner.nextLine().toLowerCase());
+        newUser.addDealBreaker("sexualidad", getValidInput("Ingrese sexualidad (heterosexual/homosexual/bisexual): ", new String[]{"heterosexual", "homosexual", "bisexual"}));
+        newUser.addDealBreaker("tipo de relación", getValidInput("Ingrese tipo de relación (seria/casual): ", new String[]{"seria", "casual"}));
 
         while (true) {
             System.out.print("¿Desea agregar deal breakers adicionales? (si/no): ");
@@ -69,11 +95,9 @@ public class Application {
             if (response.equals("si")) {
                 boolean addMore = true;
                 while (addMore) {
-                    System.out.print("Ingrese categoría del deal breaker: ");
-                    String category = scanner.nextLine().toLowerCase();
                     System.out.print("Ingrese deal breaker adicional: ");
                     String value = scanner.nextLine().toLowerCase();
-                    newUser.addDealBreaker(category, value);
+                    newUser.addDislike(value);
                     System.out.print("¿Desea agregar otro deal breaker? (si/no): ");
                     addMore = scanner.nextLine().equalsIgnoreCase("si");
                 }
@@ -90,11 +114,9 @@ public class Application {
             if (response.equals("si")) {
                 boolean addMore = true;
                 while (addMore) {
-                    System.out.print("Ingrese categoría del interés: ");
-                    String category = scanner.nextLine().toLowerCase();
                     System.out.print("Ingrese interés: ");
                     String interest = scanner.nextLine().toLowerCase();
-                    newUser.addLike(category, interest);
+                    newUser.addLike(interest);
                     System.out.print("¿Desea agregar otro interés? (si/no): ");
                     addMore = scanner.nextLine().equalsIgnoreCase("si");
                 }
@@ -109,6 +131,13 @@ public class Application {
         System.out.println("Usuario creado exitosamente.");
     }
 
+    /**
+     * Método para obtener una entrada válida del usuario.
+     * 
+     * @param prompt El mensaje a mostrar al usuario.
+     * @param validOptions Las opciones válidas que el usuario puede ingresar.
+     * @return La entrada válida ingresada por el usuario.
+     */
     private String getValidInput(String prompt, String[] validOptions) {
         while (true) {
             System.out.print(prompt);
@@ -122,6 +151,10 @@ public class Application {
         }
     }
 
+    /**
+     * Método para iniciar sesión con un usuario existente.
+     * Verifica las credenciales del usuario y establece la sesión actual.
+     */
     private void login() {
         System.out.print("Ingrese nombre de usuario: ");
         String username = scanner.nextLine().toLowerCase();
@@ -143,10 +176,15 @@ public class Application {
         }
     }
 
+    /**
+     * Método que maneja la sesión del usuario.
+     * Muestra el menú de usuario y maneja la lógica de navegación.
+     */
     private void userSession() {
-        boolean exit = false;
+        boolean exit = false; // Bandera para controlar el bucle de la sesión del usuario
 
         while (!exit) {
+            // Muestra el menú de usuario
             System.out.println("\nMenú de usuario:");
             System.out.println("1. Agregar gusto");
             System.out.println("2. Ver recomendaciones");
@@ -156,8 +194,9 @@ public class Application {
 
             try {
                 int choice = scanner.nextInt();
-                scanner.nextLine();  // Consumir la nueva línea
+                scanner.nextLine();  // Consume la nueva línea
 
+                // Maneja la opción del menú seleccionada por el usuario
                 switch (choice) {
                     case 1:
                         addLike();
@@ -178,36 +217,50 @@ public class Application {
                 }
             } catch (InputMismatchException e) {
                 System.out.println("Entrada no válida. Por favor, ingrese un número.");
-                scanner.nextLine();  // Consumir la nueva línea
+                scanner.nextLine();  // Consume la nueva línea
             }
         }
     }
 
+    /**
+     * Método para agregar un nuevo gusto al usuario actual.
+     */
     private void addLike() {
-        System.out.print("Ingrese categoría del gusto: ");
-        String category = scanner.nextLine().toLowerCase();
         System.out.print("Ingrese gusto: ");
         String like = scanner.nextLine().toLowerCase();
 
-        currentUser.addLike(category, like);
-        recommendationSystem.addInterest(currentUser.getUsername(), category, like);
+        currentUser.addLike(like);
+        recommendationSystem.addInterest(currentUser.getUsername(), like);
         System.out.println("Gusto añadido exitosamente.");
     }
 
+    /**
+     * Método para ver las recomendaciones para el usuario actual.
+     */
     private void viewRecommendations() {
-        System.out.println("Recomendaciones:");
-        List<User> recommendations = recommendationSystem.getRecommendations(currentUser);
-        for (User recommendation : recommendations) {
-            System.out.println(recommendation.getUsername());
+        System.out.println("Basados en tus deal breakers y gustos, te recomendamos:");
+        List<Map<String, Object>> recommendations = recommendationSystem.getRecommendations(currentUser);
+        for (Map<String, Object> recommendation : recommendations) {
+            System.out.println("Usuario: " + recommendation.get("username"));
+            System.out.println("Intereses Comunes: " + recommendation.get("commonInterests"));
+            System.out.println();
         }
     }
 
+    /**
+     * Método para eliminar el usuario actual.
+     */
     private void deleteUser() {
         recommendationSystem.removeUser(currentUser.getUsername());
         System.out.println("Usuario eliminado exitosamente.");
         currentUser = null;
     }
 
+    /**
+     * Método principal que inicia la aplicación.
+     * 
+     * @param args Argumentos de la línea de comandos.
+     */
     public static void main(String[] args) {
         Application app = new Application();
         app.start();
