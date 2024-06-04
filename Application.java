@@ -21,7 +21,7 @@ public class Application {
             System.out.println("2. Iniciar sesión");
             System.out.println("3. Salir");
             System.out.print("Seleccione una opción: ");
-            
+
             try {
                 int choice = scanner.nextInt();
                 scanner.nextLine();  // Consumir la nueva línea
@@ -55,39 +55,81 @@ public class Application {
         String username = scanner.nextLine().toLowerCase();
         System.out.print("Ingrese contraseña: ");
         String password = scanner.nextLine().toLowerCase();
-    
+
         User newUser = new User(username, password);
-    
-        System.out.print("Ingrese sexo (masculino/femenino): ");
-        newUser.addDealBreaker("sexo", scanner.nextLine().toLowerCase());
-        System.out.print("Ingrese sexualidad: ");
-        newUser.addDealBreaker("sexualidad", scanner.nextLine().toLowerCase());
+
+        newUser.addDealBreaker("sexo", getValidInput("Ingrese sexo (masculino/femenino): ", new String[]{"masculino", "femenino"}));
+        newUser.addDealBreaker("sexualidad", getValidInput("Ingrese sexualidad (heterosexual/homosexual): ", new String[]{"heterosexual", "homosexual"}));
         System.out.print("Ingrese tipo de relación que busca: ");
         newUser.addDealBreaker("tipo de relación", scanner.nextLine().toLowerCase());
-    
-        System.out.print("¿Desea agregar deal breakers adicionales? (sí/no): ");
-        if (scanner.nextLine().equalsIgnoreCase("sí")) {
-            boolean addMore = true;
-            while (addMore) {
-                System.out.print("Ingrese deal breaker adicional: ");
-                newUser.addDealBreaker("adicional", scanner.nextLine().toLowerCase());
-                System.out.print("¿Desea agregar otro deal breaker? (sí/no): ");
-                addMore = scanner.nextLine().equalsIgnoreCase("sí");
+
+        while (true) {
+            System.out.print("¿Desea agregar deal breakers adicionales? (si/no): ");
+            String response = scanner.nextLine().toLowerCase();
+            if (response.equals("si")) {
+                boolean addMore = true;
+                while (addMore) {
+                    System.out.print("Ingrese categoría del deal breaker: ");
+                    String category = scanner.nextLine().toLowerCase();
+                    System.out.print("Ingrese deal breaker adicional: ");
+                    String value = scanner.nextLine().toLowerCase();
+                    newUser.addDealBreaker(category, value);
+                    System.out.print("¿Desea agregar otro deal breaker? (si/no): ");
+                    addMore = scanner.nextLine().equalsIgnoreCase("si");
+                }
+            } else if (response.equals("no")) {
+                break;
+            } else {
+                System.out.println("Respuesta no válida. Por favor, responda 'si' o 'no'.");
             }
         }
-    
+
+        while (true) {
+            System.out.print("¿Desea agregar intereses? (si/no): ");
+            String response = scanner.nextLine().toLowerCase();
+            if (response.equals("si")) {
+                boolean addMore = true;
+                while (addMore) {
+                    System.out.print("Ingrese categoría del interés: ");
+                    String category = scanner.nextLine().toLowerCase();
+                    System.out.print("Ingrese interés: ");
+                    String interest = scanner.nextLine().toLowerCase();
+                    newUser.addLike(category, interest);
+                    System.out.print("¿Desea agregar otro interés? (si/no): ");
+                    addMore = scanner.nextLine().equalsIgnoreCase("si");
+                }
+            } else if (response.equals("no")) {
+                break;
+            } else {
+                System.out.println("Respuesta no válida. Por favor, responda 'si' o 'no'.");
+            }
+        }
+
         recommendationSystem.addUser(newUser);
         System.out.println("Usuario creado exitosamente.");
-    }    
+    }
+
+    private String getValidInput(String prompt, String[] validOptions) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().toLowerCase();
+            for (String option : validOptions) {
+                if (option.equalsIgnoreCase(input)) {
+                    return input;
+                }
+            }
+            System.out.println("Entrada no válida. Por favor, intente de nuevo.");
+        }
+    }
 
     private void login() {
         System.out.print("Ingrese nombre de usuario: ");
         String username = scanner.nextLine().toLowerCase();
         System.out.print("Ingrese contraseña: ");
         String password = scanner.nextLine().toLowerCase();
-    
+
         User user = recommendationSystem.getUser(username);
-    
+
         if (user != null && user.getPassword().equals(password)) {
             currentUser = user;
             System.out.println("Inicio de sesión exitoso.");
@@ -100,7 +142,7 @@ public class Application {
             currentUser = null;
         }
     }
-    
+
     private void userSession() {
         boolean exit = false;
 
@@ -111,7 +153,7 @@ public class Application {
             System.out.println("3. Eliminar usuario");
             System.out.println("4. Salir");
             System.out.print("Seleccione una opción: ");
-            
+
             try {
                 int choice = scanner.nextInt();
                 scanner.nextLine();  // Consumir la nueva línea
@@ -148,6 +190,7 @@ public class Application {
         String like = scanner.nextLine().toLowerCase();
 
         currentUser.addLike(category, like);
+        recommendationSystem.addInterest(currentUser.getUsername(), category, like);
         System.out.println("Gusto añadido exitosamente.");
     }
 

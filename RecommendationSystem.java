@@ -22,4 +22,8 @@ public class RecommendationSystem {
     public List<User> getRecommendations(User user) {
         return neo4jConnection.getRecommendations(user);
     }
+
+    public void addInterest(String username, String category, String interest) {
+        neo4jConnection.addInterest(username, category, interest);
+    }
 }

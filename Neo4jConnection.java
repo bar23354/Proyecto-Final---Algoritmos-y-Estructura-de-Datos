@@ -3,22 +3,22 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionWork;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+// Neo4jConnection.java
 public class Neo4jConnection implements AutoCloseable {
     private final Driver driver;
 
     public Neo4jConnection(String uri, String user, String password) {
         driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
-    }    
+    }
 
     @Override
     public void close() {
@@ -26,6 +26,11 @@ public class Neo4jConnection implements AutoCloseable {
     }
 
     public void addUser(User user) {
+        if (userExists(user.getUsername())) {
+            System.out.println("El usuario ya existe. Por favor, elija un nombre de usuario diferente.");
+            return;
+        }
+
         try (Session session = driver.session()) {
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("username", user.getUsername());
@@ -37,6 +42,33 @@ public class Neo4jConnection implements AutoCloseable {
             session.writeTransaction(tx -> tx.run(
                 "CREATE (u:User {username: $username, password: $password, tipoDeRelacion: $tipoDeRelacion, sexualidad: $sexualidad, sexo: $sexo})",
                 parameters));
+
+            for (Map.Entry<String, Set<String>> entry : user.getLikes().entrySet()) {
+                for (String like : entry.getValue()) {
+                    addInterest(user.getUsername(), entry.getKey(), like);
+                }
+            }
+        }
+    }
+
+    public boolean userExists(String username) {
+        try (Session session = driver.session()) {
+            Record record = session.readTransaction(tx -> tx.run(
+                "MATCH (u:User {username: $username}) RETURN u.username AS username",
+                Values.parameters("username", username)).single());
+            return record != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void addInterest(String username, String category, String interest) {
+        try (Session session = driver.session()) {
+            session.writeTransaction(tx -> tx.run(
+                "MATCH (u:User {username: $username}) " +
+                "MERGE (i:Interest {category: $category, name: $interest}) " +
+                "MERGE (u)-[:LIKES]->(i)",
+                Values.parameters("username", username, "category", category, "interest", interest)));
         }
     }
 
@@ -44,12 +76,25 @@ public class Neo4jConnection implements AutoCloseable {
         try (Session session = driver.session()) {
             return session.readTransaction(tx -> {
                 Record record = tx.run(
-                    "MATCH (u:User {username: $username}) RETURN u.username AS username, u.password AS password, u.tipoDeRelacion AS tipoDeRelacion, u.sexualidad AS sexualidad, u.sexo AS sexo",
+                    "MATCH (u:User {username: $username}) " +
+                    "RETURN u.username AS username, u.password AS password, " +
+                    "u.tipoDeRelacion AS tipoDeRelacion, u.sexualidad AS sexualidad, u.sexo AS sexo",
                     Values.parameters("username", username)).single();
+
                 User user = new User(record.get("username").asString(), record.get("password").asString());
                 user.addDealBreaker("tipo de relación", record.get("tipoDeRelacion").asString());
                 user.addDealBreaker("sexualidad", record.get("sexualidad").asString());
                 user.addDealBreaker("sexo", record.get("sexo").asString());
+
+                List<Record> interests = tx.run(
+                    "MATCH (u:User {username: $username})-[:LIKES]->(i:Interest) " +
+                    "RETURN i.category AS category, i.name AS name",
+                    Values.parameters("username", username)).list();
+
+                for (Record interestRecord : interests) {
+                    user.addLike(interestRecord.get("category").asString(), interestRecord.get("name").asString());
+                }
+
                 return user;
             });
         }
@@ -71,7 +116,7 @@ public class Neo4jConnection implements AutoCloseable {
                 for (Record record : result) {
                     String username = record.get("username").asString();
                     User candidate = getUser(username);
-                    if (matchesDealBreakers(user, candidate)) {
+                    if (matchesDealBreakers(user, candidate) && matchesInterests(user, candidate)) {
                         recommendations.add(candidate);
                     }
                 }
@@ -90,5 +135,24 @@ public class Neo4jConnection implements AutoCloseable {
             }
         }
         return true;
+    }
+
+    private boolean matchesInterests(User user, User candidate) {
+        for (Map.Entry<String, Set<String>> entry : user.getLikes().entrySet()) {
+            String category = entry.getKey();
+            Set<String> likes = entry.getValue();
+            Set<String> candidateLikes = candidate.getLikes().get(category);
+
+            if (candidateLikes == null || candidateLikes.isEmpty()) {
+                continue;
+            }
+
+            for (String like : likes) {
+                if (candidateLikes.contains(like)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
