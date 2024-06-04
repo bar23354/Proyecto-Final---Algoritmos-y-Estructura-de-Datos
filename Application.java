@@ -8,7 +8,7 @@ public class Application {
     private User currentUser;
 
     public Application() {
-        this.recommendationSystem = new RecommendationSystem();
+        this.recommendationSystem = new RecommendationSystem("bolt://localhost:7687", "neo4j", "password");
         this.scanner = new Scanner(System.in);
     }
 
@@ -55,16 +55,16 @@ public class Application {
         String username = scanner.nextLine().toLowerCase();
         System.out.print("Ingrese contraseña: ");
         String password = scanner.nextLine().toLowerCase();
-
+    
         User newUser = new User(username, password);
-
+    
         System.out.print("Ingrese sexo (masculino/femenino): ");
         newUser.addDealBreaker("sexo", scanner.nextLine().toLowerCase());
         System.out.print("Ingrese sexualidad: ");
         newUser.addDealBreaker("sexualidad", scanner.nextLine().toLowerCase());
         System.out.print("Ingrese tipo de relación que busca: ");
         newUser.addDealBreaker("tipo de relación", scanner.nextLine().toLowerCase());
-
+    
         System.out.print("¿Desea agregar deal breakers adicionales? (sí/no): ");
         if (scanner.nextLine().equalsIgnoreCase("sí")) {
             boolean addMore = true;
@@ -75,10 +75,10 @@ public class Application {
                 addMore = scanner.nextLine().equalsIgnoreCase("sí");
             }
         }
-
+    
         recommendationSystem.addUser(newUser);
         System.out.println("Usuario creado exitosamente.");
-    }
+    }    
 
     private void login() {
         System.out.print("Ingrese nombre de usuario: ");

@@ -30,6 +30,10 @@ public class User {
         return dealBreakers;
     }
 
+    public void setDealBreakers(Map<String, String> dealBreakers) {
+        this.dealBreakers = dealBreakers;
+    }
+
     public Map<String, Set<String>> getLikes() {
         return likes;
     }

@@ -18,36 +18,38 @@ public class Neo4jConnection implements AutoCloseable {
 
     public Neo4jConnection(String uri, String user, String password) {
         driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
-    }
+    }    
 
     @Override
     public void close() {
         driver.close();
     }
 
-public void addUser(User user) {
-    try (Session session = driver.session()) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("username", user.getUsername());
-        parameters.put("password", user.getPassword());
-        parameters.put("dealBreakers", user.getDealBreakers());
-        
-        session.writeTransaction(tx -> tx.run("CREATE (u:User {username: $username, password: $password, dealBreakers: $dealBreakers})",
-                parameters));
-    }
-}
+    public void addUser(User user) {
+        try (Session session = driver.session()) {
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put("username", user.getUsername());
+            parameters.put("password", user.getPassword());
+            parameters.put("tipoDeRelacion", user.getDealBreakers().get("tipo de relación"));
+            parameters.put("sexualidad", user.getDealBreakers().get("sexualidad"));
+            parameters.put("sexo", user.getDealBreakers().get("sexo"));
 
+            session.writeTransaction(tx -> tx.run(
+                "CREATE (u:User {username: $username, password: $password, tipoDeRelacion: $tipoDeRelacion, sexualidad: $sexualidad, sexo: $sexo})",
+                parameters));
+        }
+    }
 
     public User getUser(String username) {
         try (Session session = driver.session()) {
             return session.readTransaction(tx -> {
-                Record record = tx.run("MATCH (u:User {username: $username}) RETURN u.username AS username, u.password AS password, u.dealBreakers AS dealBreakers",
-                        Values.parameters("username", username)).single();
+                Record record = tx.run(
+                    "MATCH (u:User {username: $username}) RETURN u.username AS username, u.password AS password, u.tipoDeRelacion AS tipoDeRelacion, u.sexualidad AS sexualidad, u.sexo AS sexo",
+                    Values.parameters("username", username)).single();
                 User user = new User(record.get("username").asString(), record.get("password").asString());
-                Map<String, String> dealBreakers = record.get("dealBreakers").asMap(Value::asString);
-                for (Map.Entry<String, String> entry : dealBreakers.entrySet()) {
-                    user.addDealBreaker(entry.getKey(), entry.getValue());
-                }
+                user.addDealBreaker("tipo de relación", record.get("tipoDeRelacion").asString());
+                user.addDealBreaker("sexualidad", record.get("sexualidad").asString());
+                user.addDealBreaker("sexo", record.get("sexo").asString());
                 return user;
             });
         }
@@ -56,7 +58,7 @@ public void addUser(User user) {
     public void removeUser(String username) {
         try (Session session = driver.session()) {
             session.writeTransaction(tx -> tx.run("MATCH (u:User {username: $username}) DETACH DELETE u",
-                    Values.parameters("username", username)));
+                Values.parameters("username", username)));
         }
     }
 

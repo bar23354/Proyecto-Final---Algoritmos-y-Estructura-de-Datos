@@ -3,8 +3,8 @@ import java.util.List;
 public class RecommendationSystem {
     private Neo4jConnection neo4jConnection;
 
-    public RecommendationSystem() {
-        this.neo4jConnection = new Neo4jConnection("bolt://localhost:7687", "neo4j", "password");
+    public RecommendationSystem(String uri, String user, String password) {
+        this.neo4jConnection = new Neo4jConnection(uri, user, password);
     }
 
     public void addUser(User user) {
